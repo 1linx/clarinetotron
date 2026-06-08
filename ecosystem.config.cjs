@@ -2,8 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'clarinetotron',
-      script: 'node_modules/next/dist/bin/next',
-      args: 'start',
+      script: '.next/standalone/server.js',
       instances: 1,
       exec_mode: 'fork',
       env_production: {
