@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "git pull && npm install && npm run build && npm prune --omit=dev && pm2 restart ecosystem.config.cjs --env production"
+    "deploy": "bash deploy.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
