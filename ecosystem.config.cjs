@@ -1,4 +1,20 @@
+const { readFileSync } = require('fs')
+const { resolve } = require('path')
+
 const REMOTE_DIR = '/home/ubuntu/clarinetotron'
+
+// Load .env.local into the env object PM2 passes to each process
+const env = {}
+try {
+  const file = readFileSync(resolve(REMOTE_DIR, '.env.local'), 'utf8')
+  for (const line of file.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eq = trimmed.indexOf('=')
+    if (eq === -1) continue
+    env[trimmed.slice(0, eq).trim()] = trimmed.slice(eq + 1).trim()
+  }
+} catch { /* .env.local not present — rely on vars already in process.env */ }
 
 module.exports = {
   apps: [
@@ -7,7 +23,8 @@ module.exports = {
       script: `${REMOTE_DIR}/.next/standalone/server.js`,
       instances: 1,
       exec_mode: 'fork',
-      env_production: {
+      env: {
+        ...env,
         NODE_ENV: 'production',
         PORT: 9070,
         HOSTNAME: '0.0.0.0',
@@ -16,13 +33,12 @@ module.exports = {
     {
       name: 'daily-notification',
       script: `${REMOTE_DIR}/scripts/daily-notification.mjs`,
-      // Fires at 20:00 server time — adjust to match your timezone
       cron_restart: '0 20 * * *',
       watch: false,
       autorestart: false,
       instances: 1,
       env: {
-        // Cron script uses the deps bundled inside the standalone build
+        ...env,
         NODE_PATH: `${REMOTE_DIR}/.next/standalone/node_modules`,
       },
     },

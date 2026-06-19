@@ -1,8 +1,11 @@
 import crypto from 'crypto'
 import { cookies } from 'next/headers'
+import bcrypt from 'bcryptjs'
+import { supabase } from './supabase'
 
 const COOKIE_NAME = 'admin_session'
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000
+const APP = 'clarinetotron'
 
 function sign(data: string, secret: string): string {
   return crypto.createHmac('sha256', secret).update(data).digest('hex')
@@ -32,14 +35,16 @@ export function verifyToken(token: string): { username: string } | null {
   return { username: parsed.username }
 }
 
-export function validateAdminCredentials(username: string, password: string): boolean {
-  const admins = [
-    { u: process.env.ADMIN_1_USERNAME, p: process.env.ADMIN_1_PASSWORD },
-    { u: process.env.ADMIN_2_USERNAME, p: process.env.ADMIN_2_PASSWORD },
-  ]
-  return admins.some(
-    (a) => a.u && a.p && a.u === username && a.p === password
-  )
+export async function validateAdminCredentials(username: string, password: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('password_hash')
+    .eq('app', APP)
+    .eq('username', username)
+    .maybeSingle()
+
+  if (error || !data) return false
+  return bcrypt.compare(password, data.password_hash)
 }
 
 export async function getAdminSession(): Promise<{ username: string } | null> {

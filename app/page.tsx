@@ -89,7 +89,8 @@ export default function HomePage() {
     if (!('Notification' in window)) {
       setNotifStatus('unsupported')
     } else {
-      setNotifStatus(Notification.permission as 'granted' | 'denied' | 'unknown')
+      const p = Notification.permission
+      setNotifStatus(p === 'default' ? 'unknown' : p as 'granted' | 'denied')
     }
   }, [])
 

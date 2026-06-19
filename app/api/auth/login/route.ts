@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json()
-    if (!validateAdminCredentials(username, password)) {
+    if (!await validateAdminCredentials(username, password)) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
     const token = createToken(username)
